@@ -1,17 +1,17 @@
-import { genkit } from 'genkit';
+import { genkit } from 'genkit/beta';
 import { googleAI } from '@genkit-ai/googleai';
-import { defineMemoryTools, MEMORY_TOOLS_INSTRUCTIONS } from '../src';
+import { defineGraphMemoryTools } from '../src';
 
 const ai = genkit({
   plugins: [googleAI()],
   model: googleAI.model('gemini-2.5-flash'),
 });
 
-const memoryTools = defineMemoryTools(ai);
+const memoryTools = defineGraphMemoryTools(ai);
 
 ai.defineFlow('populate_graph', async () => {
   const { text } = await ai.generate({
-    system: MEMORY_TOOLS_INSTRUCTIONS,
+    system: [{ resource: { uri: 'memory://graph/instructions' } }],
     prompt: `Remember that my name is Pavel and I'm a Software Developer and I work at company Placeholder Software Inc.`,
     tools: [...memoryTools],
   });
@@ -20,7 +20,7 @@ ai.defineFlow('populate_graph', async () => {
 
 ai.defineFlow('add_observations', async () => {
   const { text } = await ai.generate({
-    system: MEMORY_TOOLS_INSTRUCTIONS,
+    system: [{ resource: { uri: 'memory://graph/instructions' } }],
     prompt: `Pavel likes TypeScript. Remember this observation`,
     tools: [...memoryTools],
   });
@@ -29,7 +29,7 @@ ai.defineFlow('add_observations', async () => {
 
 ai.defineFlow('delete_observations', async () => {
   const { text } = await ai.generate({
-    system: MEMORY_TOOLS_INSTRUCTIONS,
+    system: [{ resource: { uri: 'memory://graph/instructions' } }],
     prompt: `Forget that Pavel likes TypeScript. `,
     tools: [...memoryTools],
   });
@@ -38,7 +38,7 @@ ai.defineFlow('delete_observations', async () => {
 
 ai.defineFlow('delete_relation', async () => {
   const { text } = await ai.generate({
-    system: MEMORY_TOOLS_INSTRUCTIONS,
+    system: [{ resource: { uri: 'memory://graph/instructions' } }],
     prompt: `Forget that Pavel is a Software Developer.`,
     tools: [...memoryTools],
   });
@@ -47,9 +47,20 @@ ai.defineFlow('delete_relation', async () => {
 
 ai.defineFlow('check_entity', async () => {
   const { text } = await ai.generate({
-    system: MEMORY_TOOLS_INSTRUCTIONS,
+    system: [{ resource: { uri: 'memory://graph/instructions' } }],
     prompt: `do you remember my name? check memory.`,
     tools: [...memoryTools],
+  });
+  return text;
+});
+
+ai.defineFlow('populate_graph_in_session', async () => {
+  const sessionId = '123';
+  const { text } = await ai.generate({
+    system: [{ resource: { uri: 'memory://graph/instructions' } }],
+    prompt: `Remember that my name is Banana and I'm a Tree and I work at Banana Grove Inc.`,
+    tools: [...memoryTools],
+    context: { memory: { sessionId } },
   });
   return text;
 });

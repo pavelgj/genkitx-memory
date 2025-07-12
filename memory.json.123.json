@@ -1,0 +1,3 @@
+{"type":"entity","entityType":"Person","observations":["name is Banana","is a Tree"],"name":"Banana"}
+{"type":"entity","name":"Banana Grove Inc.","observations":["is a company"],"entityType":"Company"}
+{"type":"relationship","to":"Banana Grove Inc.","relationshipType":"works at","from":"Banana"}

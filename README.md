@@ -15,14 +15,14 @@ npm install genkitx-memory
 ```typescript
 import { genkit } from "genkit";
 import { googleAI } from "@genkit-ai/googleai";
-import { defineMemoryTools, MEMORY_TOOLS_INSTRUCTIONS } from "genkitx-memory";
+import { defineGraphMemoryTools, MEMORY_TOOLS_INSTRUCTIONS } from "genkitx-memory";
 
 const ai = genkit({
   plugins: [googleAI()],
   model: googleAI.model("gemini-2.5-flash"),
 });
 
-const memoryTools = defineMemoryTools(ai);
+const memoryTools = defineGraphMemoryTools(ai);
 
 ai.defineFlow("populate_graph", async () => {
   const { text } = await ai.generate({
@@ -36,9 +36,9 @@ ai.defineFlow("populate_graph", async () => {
 
 ## Usage
 
-The `genkitx-memory` package exposes `defineMemoryTools`, `MEMORY_TOOLS`, and `MEMORY_TOOLS_INSTRUCTIONS`.
+The `genkitx-memory` package exposes `defineGraphMemoryTools`, `MEMORY_TOOLS`, and `MEMORY_TOOLS_INSTRUCTIONS`.
 
-- `defineMemoryTools`: This function takes your Genkit instance (`ai`) and returns an array of `ToolAction` objects, which are the actual memory tools. You should include these in your Genkit `tools` array when defining flows that need memory access.
+- `defineGraphMemoryTools`: This function takes your Genkit instance (`ai`) and returns an array of `ToolAction` objects, which are the actual memory tools. You should include these in your Genkit `tools` array when defining flows that need memory access.
 - `MEMORY_TOOLS_INSTRUCTIONS`: This is a string containing important instructions for the LLM on how to effectively use the memory tools. **It is crucial to include these instructions in the prompt (either system or user) of your `ai.generate` calls when using memory tools.** This guides the LLM to properly format its requests and understand the memory graph structure. You don't have to use these specific instructions, just remember that without any instructions the LLM is unlikely to use these tools correctly.
 - `MEMORY_TOOLS`: This is a constant array of strings, listing the names of all available memory tools (e.g., `'memory/create_entities'`). It can be used in place of tools returned from `defineMemoryTools`.
 
@@ -105,7 +105,7 @@ Here are examples of other memory operations:
 
 ## Available Memory Tools
 
-This plugin provides the following tools, which are exposed via `defineMemoryTools`:
+This plugin provides the following tools, which are exposed via `defineGraphMemoryTools`:
 
 - `memory/create_entities`: Create multiple new entities in the knowledge graph.
 - `memory/create_relationships`: Create multiple new relationships between existing entities in the knowledge graph. Relationships should be in active voice.
