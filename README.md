@@ -119,4 +119,13 @@ This plugin provides the following tools, which are exposed via `defineMemoryToo
 
 This is inspired by MCP memory server from: https://github.com/modelcontextprotocol/servers/tree/main/src/memory
 
+## Memory File Management
+
+The `genkitx-memory` package stores its knowledge graph data in a local file. The path to this file can be controlled via the `MEMORY_FILE_PATH` environment variable.
+
+- If `MEMORY_FILE_PATH` is set, the package will use the specified path for the memory file.
+- If `MEMORY_FILE_PATH` is not set, the memory file will default to `memory.json` located in the current working directory where the application is run.
+
+This allows for flexible management of your knowledge graph data, enabling you to specify a custom location or rely on the default behavior for quick setup.
+
 Learn more about genkit on https://genkit.dev
