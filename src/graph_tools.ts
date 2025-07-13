@@ -14,7 +14,7 @@ export function defineGraphMemoryTools(
   opts?: { store?: GraphStore; memoryFilePath?: string }
 ): ToolAction[] {
   const memoryFilePath =
-    opts?.memoryFilePath ?? process.env.MEMORY_FILE_PATH ?? path.join(process.cwd(), 'memory.json');
+    opts?.memoryFilePath ?? process.env.GRAPH_MEMORY_FILE_PATH ?? path.join(process.cwd(), 'graph_memory.json');
 
   const graph = new Graph(opts?.store ?? new FileGraphStore(memoryFilePath));
 
@@ -217,6 +217,7 @@ export const GRAPH_MEMORY_TOOLS = [
 ] as const;
 
 export const GRAPH_MEMORY_TOOLS_INSTRUCTIONS = `[instructions about memory tools]
+
 You have access to the following tools that help you manage long-term memory: ${GRAPH_MEMORY_TOOLS.join(
   ', '
 )}
@@ -230,6 +231,7 @@ The search_nodes tool uses basic substring search, keep that in mind.
 
 IMPORTANT:
  - If targeted search (search_nodes tool) returns nothing, awlays use read_graph tool next to get the full graph. search_nodes can be unreliable.
- - Never add or remove observations or relationships blindly, always look up current state first.
+ - Never guess entity names, you MUST look up current state first.
+
 [end of instructions about memory tools]
 `;
