@@ -3,9 +3,10 @@ import * as assert from 'assert';
 import { Entry, FileKeyValueStore } from '../src/kv_store.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 
 describe('FileKeyValueStore', () => {
-  const testBaseDir = path.join(process.cwd(), 'test_memory_data');
+  const testBaseDir = path.join(os.tmpdir(), 'genkitx-memory-test', Date.now().toString());
   let store: FileKeyValueStore;
 
   beforeEach(async () => {

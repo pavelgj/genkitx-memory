@@ -26,11 +26,8 @@ export class FileKeyValueStore implements KeyValueStore {
   }
 
   private getSessionFilePath(sessionId: string | undefined): string {
-    if (!sessionId) {
-      return this.memoryFilePath;
-    } else {
-      return `${this.memoryFilePath}.${sessionId}`;
-    }
+    const fileName = sessionId ? `kv_memory.${sessionId}.json` : `kv_memory.json`;
+    return path.join(this.memoryFilePath, fileName);
   }
 
   private async _load(sessionId: string | undefined): Promise<Map<string, string>> {
@@ -44,7 +41,7 @@ export class FileKeyValueStore implements KeyValueStore {
         // File does not exist, return empty map
         return new Map();
       } else {
-        throw new Error(`Failed to load memory file ${filePath} for session ${sessionId}: ${error.message}`);
+        throw new Error(`Failed to load memory file for session ${sessionId}: ${error.message}`);
       }
     }
   }
@@ -52,7 +49,7 @@ export class FileKeyValueStore implements KeyValueStore {
   private async _save(sessionId: string | undefined, data: Map<string, string>): Promise<void> {
     const filePath = this.getSessionFilePath(sessionId);
     const obj = Object.fromEntries(data);
-    await fs.mkdir(path.dirname(this.memoryFilePath), { recursive: true }); // Ensure base directory exists
+    await fs.mkdir(path.dirname(filePath), { recursive: true }); // Ensure base directory exists
     await fs.writeFile(filePath, JSON.stringify(obj, null, 2), 'utf-8');
   }
 
