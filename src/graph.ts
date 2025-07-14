@@ -1,4 +1,11 @@
-import { AddedObservationResult, DeletedObservation, Entity, KnowledgeGraph, Observation, Relationship } from './types.js';
+import {
+  AddedObservationResult,
+  DeletedObservation,
+  Entity,
+  KnowledgeGraph,
+  Observation,
+  Relationship,
+} from './types.js';
 import { promises as fs } from 'fs';
 
 /**
@@ -9,13 +16,13 @@ export interface GraphStore {
    * Loads the knowledge graph from the store.
    * @returns A promise that resolves to the KnowledgeGraph.
    */
-  loadGraph(): Promise<KnowledgeGraph>;
+  loadGraph(sessionId: string | undefined): Promise<KnowledgeGraph>;
   /**
    * Saves the knowledge graph to the store.
    * @param graph The KnowledgeGraph to save.
    * @returns A promise that resolves when the graph is saved.
    */
-  saveGraph(graph: KnowledgeGraph): Promise<void>;
+  saveGraph(sessionId: string | undefined, graph: KnowledgeGraph): Promise<void>;
 }
 
 /**
@@ -38,9 +45,14 @@ export class FileGraphStore implements GraphStore {
    * If the file does not exist, an empty graph is returned.
    * @returns A promise that resolves to the loaded KnowledgeGraph.
    */
-  async loadGraph(): Promise<KnowledgeGraph> {
+  async loadGraph(sessionId: string | undefined): Promise<KnowledgeGraph> {
+    if (!sessionId) {
+      sessionId = '';
+    } else {
+      sessionId = '.' + sessionId + '.json';
+    }
     try {
-      const fileContent = await fs.readFile(this.memoryFilePath, 'utf-8');
+      const fileContent = await fs.readFile(this.memoryFilePath + sessionId, 'utf-8');
       const lines = fileContent.split('\n').filter((line) => line.trim() !== '');
 
       const loadedGraph: KnowledgeGraph = { entities: [], relationships: [] };
@@ -68,12 +80,17 @@ export class FileGraphStore implements GraphStore {
    * @param graph The KnowledgeGraph to save.
    * @returns A promise that resolves when the graph is saved.
    */
-  async saveGraph(graph: KnowledgeGraph): Promise<void> {
+  async saveGraph(sessionId: string | undefined, graph: KnowledgeGraph): Promise<void> {
+    if (!sessionId) {
+      sessionId = '';
+    } else {
+      sessionId = '.' + sessionId + '.json';
+    }
     const lines = [
       ...graph.entities.map((e) => JSON.stringify({ type: 'entity', ...e })),
       ...graph.relationships.map((r) => JSON.stringify({ type: 'relationship', ...r })),
     ];
-    await fs.writeFile(this.memoryFilePath, lines.join('\n'));
+    await fs.writeFile(this.memoryFilePath + sessionId, lines.join('\n'));
   }
 }
 
@@ -98,11 +115,12 @@ export class Graph {
    * @returns A promise that resolves to the result of the modifier function.
    */
   private async _withGraphPersistence<T>(
+    sessionId: string | undefined,
     modifier: (graph: KnowledgeGraph) => T
   ): Promise<T> {
-    const graph = await this.store.loadGraph();
+    const graph = await this.store.loadGraph(sessionId);
     const result = modifier(graph);
-    await this.store.saveGraph(graph);
+    await this.store.saveGraph(sessionId, graph);
     return result;
   }
 
@@ -111,8 +129,8 @@ export class Graph {
    * @param entities An array of Entity objects to create.
    * @returns A promise that resolves to an array of newly created entities.
    */
-  async createEntities(entities: Entity[]): Promise<Entity[]> {
-    return this._withGraphPersistence((graph) => {
+  async createEntities(sessionId: string | undefined, entities: Entity[]): Promise<Entity[]> {
+    return this._withGraphPersistence(sessionId, (graph) => {
       const newEntities = entities.filter(
         (e) => !graph.entities.some((existingEntity) => existingEntity.name === e.name)
       );
@@ -126,8 +144,11 @@ export class Graph {
    * @param relationships An array of Relationship objects to create.
    * @returns A promise that resolves to an array of newly created relationships.
    */
-  async createRelationships(relationships: Relationship[]): Promise<Relationship[]> {
-    return this._withGraphPersistence((graph) => {
+  async createRelationships(
+    sessionId: string | undefined,
+    relationships: Relationship[]
+  ): Promise<Relationship[]> {
+    return this._withGraphPersistence(sessionId, (graph) => {
       const newRelationships = relationships.filter(
         (r) =>
           !graph.relationships.some(
@@ -148,8 +169,11 @@ export class Graph {
    * @param observations An array of Observation objects to add.
    * @returns A promise that resolves to an array of objects, each indicating the entity name and the observations that were added.
    */
-  async addObservations(observations: Observation[]): Promise<AddedObservationResult[]> {
-    return this._withGraphPersistence((graph) => {
+  async addObservations(
+    sessionId: string | undefined,
+    observations: Observation[]
+  ): Promise<AddedObservationResult[]> {
+    return this._withGraphPersistence(sessionId, (graph) => {
       const results = observations.map((o) => {
         const entity = graph.entities.find((e) => e.name === o.entityName);
         if (!entity) {
@@ -170,8 +194,8 @@ export class Graph {
    * @param entityNames An array of entity names to delete.
    * @returns A promise that resolves when the entities and related relationships are deleted.
    */
-  async deleteEntities(entityNames: string[]): Promise<void> {
-    await this._withGraphPersistence((graph) => {
+  async deleteEntities(sessionId: string | undefined, entityNames: string[]): Promise<void> {
+    await this._withGraphPersistence(sessionId, (graph) => {
       graph.entities = graph.entities.filter((e) => !entityNames.includes(e.name));
       graph.relationships = graph.relationships.filter(
         (r) => !entityNames.includes(r.from) && !entityNames.includes(r.to)
@@ -184,8 +208,11 @@ export class Graph {
    * @param deletions An array of objects, each specifying an entity name and an array of observations to delete from it.
    * @returns A promise that resolves when the observations are deleted.
    */
-  async deleteObservations(deletions: DeletedObservation[]): Promise<void> {
-    await this._withGraphPersistence((graph) => {
+  async deleteObservations(
+    sessionId: string | undefined,
+    deletions: DeletedObservation[]
+  ): Promise<void> {
+    await this._withGraphPersistence(sessionId, (graph) => {
       deletions.forEach((d) => {
         const entity = graph.entities.find((e) => e.name === d.entityName);
         if (entity) {
@@ -200,8 +227,11 @@ export class Graph {
    * @param relationships An array of Relationship objects to delete.
    * @returns A promise that resolves when the relationships are deleted.
    */
-  async deleteRelationships(relationships: Relationship[]): Promise<void> {
-    await this._withGraphPersistence((graph) => {
+  async deleteRelationships(
+    sessionId: string | undefined,
+    relationships: Relationship[]
+  ): Promise<void> {
+    await this._withGraphPersistence(sessionId, (graph) => {
       graph.relationships = graph.relationships.filter(
         (r) =>
           !relationships.some(
@@ -218,8 +248,8 @@ export class Graph {
    * Reads and returns the entire knowledge graph.
    * @returns A promise that resolves to the complete KnowledgeGraph.
    */
-  async readGraph(): Promise<KnowledgeGraph> {
-    return this.store.loadGraph();
+  async readGraph(sessionId: string | undefined): Promise<KnowledgeGraph> {
+    return this.store.loadGraph(sessionId);
   }
 
   /**
@@ -237,8 +267,7 @@ export class Graph {
 
     const filteredRelationships = graph.relationships.filter(
       (relationship) =>
-        filteredEntityNames.has(relationship.from) ||
-        filteredEntityNames.has(relationship.to)
+        filteredEntityNames.has(relationship.from) || filteredEntityNames.has(relationship.to)
     );
 
     return {
@@ -253,8 +282,8 @@ export class Graph {
    * @param query The search string.
    * @returns A promise that resolves to a KnowledgeGraph containing matching entities and their relevant relationships.
    */
-  async searchNodes(query: string): Promise<KnowledgeGraph> {
-    const graph = await this.store.loadGraph();
+  async searchNodes(sessionId: string | undefined, query: string): Promise<KnowledgeGraph> {
+    const graph = await this.store.loadGraph(sessionId);
     const lowerCaseQuery = query.toLowerCase();
 
     return this._filterGraph(
@@ -273,8 +302,8 @@ export class Graph {
    * @param names An array of entity names to retrieve.
    * @returns A promise that resolves to a KnowledgeGraph containing the specified entities and their relevant relationships.
    */
-  async openNodes(names: string[]): Promise<KnowledgeGraph> {
-    const graph = await this.store.loadGraph();
+  async openNodes(sessionId: string | undefined, names: string[]): Promise<KnowledgeGraph> {
+    const graph = await this.store.loadGraph(sessionId);
     return this._filterGraph(graph, (entity) => names.includes(entity.name));
   }
 }

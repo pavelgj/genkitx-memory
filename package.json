@@ -6,9 +6,9 @@
     "ai",
     "memory"
   ],
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Genkit plugin for managing and interacting with long-term memory.",
-  "main": "lib/index.js",
+  "main": "lib/mcp.js",
   "types": "./lib/index.d.ts",
   "exports": {
     ".": {
@@ -22,7 +22,7 @@
   "scripts": {
     "check": "tsc",
     "compile": "tsup-node",
-    "run-sample": "MEMORY_FILE_PATH=`pwd`/memory.local.json genkit start -- tsx samples/index.ts",
+    "run-sample": "MEMORY_FILE_PATH=`pwd`/memory.local.json genkit start -- tsx samples/kv.ts",
     "build:clean": "rimraf ./lib",
     "build": "npm-run-all build:clean check compile",
     "build:watch": "tsup-node --watch",
@@ -46,5 +46,9 @@
     "tsx": "^4.19.2",
     "typescript": "^5.3.0"
   },
-  "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad"
+  "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad",
+  "dependencies": {
+    "@genkit-ai/mcp": "1.14.1-rc.2",
+    "@modelcontextprotocol/sdk": "^1.15.1"
+  }
 }
