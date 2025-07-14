@@ -7,7 +7,7 @@
     "memory",
     "mcp"
   ],
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A Genkit plugin for managing and interacting with long-term memory.",
   "bin": {
     "genkitx-memory-mcp": "lib/mcp.js"

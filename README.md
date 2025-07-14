@@ -44,15 +44,15 @@ The `genkitx-memory` package provides a simple yet effective Key-Value memory st
 
 The `defineMemoryTools` function exposes the following tools:
 
-- `memory/save`: Saves one or more key-value pairs. If a key already exists, its value will be overwritten.
+- `memory_set`: Sets one or more key-value pairs. If a key already exists, its value will be overwritten.
   - Input: `{ entries: [{ key: string, value: string }] }`
-- `memory/load`: Retrieves values for specified keys. If no keys are provided, all entries for the current session are loaded.
+- `memory_get`: Retrieves values for specified keys. If no keys are provided, all entries for the current session are loaded.
   - Input: `{ keys?: string[] }`
   - Output: `[{ key: string, value: string }]`
-- `memory/list_keys`: Lists all keys currently stored in memory for the current session.
+- `memory_list_keys`: Lists all keys currently stored in memory for the current session.
   - Input: `{}`
   - Output: `string[]`
-- `memory/delete`: Deletes a specific key-value pair from memory.
+- `memory_delete`: Deletes a specific key-value pair from memory.
   - Input: `{ key: string }`
 
 ### Example Usage (Key-Value Memory)
@@ -87,15 +87,15 @@ For more complex relationships and structured data, the package also offers a Kn
 
 The `defineGraphMemoryTools` function exposes a comprehensive set of tools for interacting with the knowledge graph:
 
-- `memory/create_entities`: Create multiple new entities.
-- `memory/create_relationships`: Create multiple new relationships between entities.
-- `memory/add_observations`: Add new observations to existing entities.
-- `memory/delete_entities`: Delete specified entities and their associated relationships/observations.
-- `memory/delete_observations`: Delete specific observations from entities.
-- `memory/delete_relationships`: Delete specified relationships between entities.
-- `memory/read_graph`: Read the entire knowledge graph.
-- `memory/search_nodes`: Search for entities matching a query.
-- `memory/read_nodes`: Read specific entities by name.
+- `memory_create_entities`: Create multiple new entities.
+- `memory_create_relationships`: Create multiple new relationships between entities.
+- `memory_add_observations`: Add new observations to existing entities.
+- `memory_delete_entities`: Delete specified entities and their associated relationships/observations.
+- `memory_delete_observations`: Delete specific observations from entities.
+- `memory_delete_relationships`: Delete specified relationships between entities.
+- `memory_read_graph`: Read the entire knowledge graph.
+- `memory_search_nodes`: Search for entities matching a query.
+- `memory_read_nodes`: Read specific entities by name.
 
 ### Example Usage (Graph Memory)
 
