@@ -179,3 +179,28 @@ npx -y genkitx-memory
 ```
 
 Learn more about Genkit on https://genkit.dev
+
+### Agent Rules for MCP Server Usage
+
+To enable agents (like Gemini CLI, Cline, or Claude Code) to effectively use the `genkitx-memory` MCP server, include the following rules in their configuration (e.g., `GEMINI.md`, `.clienerule`, `CLAUDE.md`):
+
+```
+[instructions about memory tools]
+
+You have access to tools that help you manage long-term memory.
+Use them when asked to remember things. Memory is a simple key-value store.
+- Use 'memory_set' to store information with a specific key.
+- Use 'memory_get' to retrieve information by its key.
+- Use 'memory_list_keys' to see all stored keys.
+- Use 'memory_delete' to delete information by its key.
+
+When setting memory, choose a descriptive key that will help you retrieve the information later. It can be a whole sentense if necessary.
+When getting memory, ensure you use the exact key that was used to set the value.
+When deleting memory, ensure you use the exact key that was used to set the value.
+
+IMPORTANT:
+ - Always start by listing available keys. It's important to know what you's been worked on in the past that is not avilable in the immediate converation history.
+ - Never guess a key when deleting or getting entries. You MUST look up existing keys first.
+
+[end of instructions about memory tools]
+```
