@@ -1,6 +1,6 @@
 # Genkit Memory Tools
 
-This package provides a set of powerful tools for Genkit to manage long-term memory using a knowledge graph. It allows your Genkit flows to store, retrieve, and manipulate structured information, enabling more sophisticated and context-aware AI applications.
+This package provides a set of powerful tools for Genkit to manage long-term memory using both a simple Key-Value store and a more complex Knowledge Graph. It allows your Genkit flows to store, retrieve, and manipulate structured and unstructured information, enabling more sophisticated and context-aware AI applications.
 
 ## Installation
 
@@ -10,122 +10,172 @@ npm install genkitx-memory
 # or yarn add genkitx-memory
 ```
 
-## Basic usage
+## Basic Usage (Key-Value Memory)
+
+To get started with the Key-Value memory store:
 
 ```typescript
-import { genkit } from "genkit";
+import { genkit } from "genkit/beta";
 import { googleAI } from "@genkit-ai/googleai";
-import { defineGraphMemoryTools, MEMORY_TOOLS_INSTRUCTIONS } from "genkitx-memory";
+import { defineMemoryTools } from "genkitx-memory";
 
 const ai = genkit({
   plugins: [googleAI()],
   model: googleAI.model("gemini-2.5-flash"),
 });
 
-const memoryTools = defineGraphMemoryTools(ai);
+const memoryTools = defineMemoryTools(ai);
 
-ai.defineFlow("populate_graph", async () => {
+ai.defineFlow("populate_memory", async () => {
   const { text } = await ai.generate({
-    system: MEMORY_TOOLS_INSTRUCTIONS, // Crucial for guiding the LLM
-    prompt: `Remember that my name is Paul and I'm a Software Developer and I work at company Placeholder Software Inc.`,
-    tools: [...memoryTools], // Pass the memory tools to the LLM
+    system: [{ resource: { uri: "memory://instructions" } }], // Referencing KV memory instructions
+    prompt: `Remember that my favorite color is blue.`,
+    tools: [...memoryTools],
   });
   return text;
 });
 ```
 
-## Usage
+## Key-Value Memory Store
 
-The `genkitx-memory` package exposes `defineGraphMemoryTools`, `MEMORY_TOOLS`, and `MEMORY_TOOLS_INSTRUCTIONS`.
+The `genkitx-memory` package provides a simple yet effective Key-Value memory store. This is ideal for storing discrete pieces of information that can be easily retrieved by a unique key.
 
-- `defineGraphMemoryTools`: This function takes your Genkit instance (`ai`) and returns an array of `ToolAction` objects, which are the actual memory tools. You should include these in your Genkit `tools` array when defining flows that need memory access.
-- `MEMORY_TOOLS_INSTRUCTIONS`: This is a string containing important instructions for the LLM on how to effectively use the memory tools. **It is crucial to include these instructions in the prompt (either system or user) of your `ai.generate` calls when using memory tools.** This guides the LLM to properly format its requests and understand the memory graph structure. You don't have to use these specific instructions, just remember that without any instructions the LLM is unlikely to use these tools correctly.
-- `MEMORY_TOOLS`: This is a constant array of strings, listing the names of all available memory tools (e.g., `'memory/create_entities'`). It can be used in place of tools returned from `defineMemoryTools`.
+### Available Key-Value Memory Tools
 
-## Examples
+The `defineMemoryTools` function exposes the following tools:
 
-### Populating the Knowledge Graph
+- `memory/save`: Saves one or more key-value pairs. If a key already exists, its value will be overwritten.
+  - Input: `{ entries: [{ key: string, value: string }] }`
+- `memory/load`: Retrieves values for specified keys. If no keys are provided, all entries for the current session are loaded.
+  - Input: `{ keys?: string[] }`
+  - Output: `[{ key: string, value: string }]`
+- `memory/list_keys`: Lists all keys currently stored in memory for the current session.
+  - Input: `{}`
+  - Output: `string[]`
+- `memory/delete`: Deletes a specific key-value pair from memory.
+  - Input: `{ key: string }`
 
-To store information in the memory:
+### Example Usage (Key-Value Memory)
+
+You can find a complete example in `samples/kv.ts`.
+
+To save data:
 
 ```typescript
-ai.generate({
-  system: MEMORY_TOOLS_INSTRUCTIONS, // Crucial for guiding the LLM
+await ai.generate({
+  system: [{ resource: { uri: "memory://instructions" } }],
+  prompt: `Save my name as 'Paul' and my occupation as 'Software Developer'.`,
+  tools: [...memoryTools],
+});
+```
+
+To load data:
+
+```typescript
+const result = await ai.generate({
+  system: [{ resource: { uri: "memory://instructions" } }],
+  prompt: `What is my name and occupation?`,
+  tools: [...memoryTools],
+});
+```
+
+## Graph Memory Store (Advanced)
+
+For more complex relationships and structured data, the package also offers a Knowledge Graph memory store. This is inspired by the Model Context Protocol (MCP) memory server and allows for storing entities, relationships, and observations, enabling sophisticated querying and reasoning.
+
+### Available Graph Memory Tools
+
+The `defineGraphMemoryTools` function exposes a comprehensive set of tools for interacting with the knowledge graph:
+
+- `memory/create_entities`: Create multiple new entities.
+- `memory/create_relationships`: Create multiple new relationships between entities.
+- `memory/add_observations`: Add new observations to existing entities.
+- `memory/delete_entities`: Delete specified entities and their associated relationships/observations.
+- `memory/delete_observations`: Delete specific observations from entities.
+- `memory/delete_relationships`: Delete specified relationships between entities.
+- `memory/read_graph`: Read the entire knowledge graph.
+- `memory/search_nodes`: Search for entities matching a query.
+- `memory/read_nodes`: Read specific entities by name.
+
+### Example Usage (Graph Memory)
+
+You can find a complete example in `samples/graph.ts`.
+
+To populate the graph:
+
+```typescript
+import { defineGraphMemoryTools } from "genkitx-memory";
+
+const graphMemoryTools = defineGraphMemoryTools(ai);
+
+await ai.generate({
+  system: [{ resource: { uri: "memory://instructions" } }], // Referencing Graph memory instructions
   prompt: `Remember that my name is Paul and I'm a Software Developer and I work at company Placeholder Software Inc.`,
-  tools: [...memoryTools], // Expose all memory tools to the LLM
+  tools: [...graphMemoryTools],
 });
 ```
 
-In this example:
-
-- The `system` prompt includes `MEMORY_TOOLS_INSTRUCTIONS`, which tells the LLM how to interact with the memory tools.
-- The `prompt` instructs the LLM to "remember" facts. The LLM, guided by the `MEMORY_TOOLS_INSTRUCTIONS`, will then call appropriate memory tools (like `memory/create_entities` and `memory/create_relationships`) to store this information in the knowledge graph.
-- `tools: [...memoryTools]` ensures that all memory management tools are available for the LLM to use.
-
-### Checking Stored Information
-
-To query the memory:
+To query the graph:
 
 ```typescript
-ai.generate({
-  system: MEMORY_TOOLS_INSTRUCTIONS,
-  prompt: `do you remember my name? check memory.`,
-  tools: [...memoryTools], // Use the defined memoryTools
+const result = await ai.generate({
+  system: [{ resource: { uri: "memory://instructions" } }],
+  prompt: `Do you remember my name and where I work?`,
+  tools: [...graphMemoryTools],
 });
 ```
-
-### Other Memory Operations
-
-Here are examples of other memory operations:
-
-- **Adding observations**:
-  ```typescript
-  ai.generate({
-    system: MEMORY_TOOLS_INSTRUCTIONS,
-    prompt: `Paul likes TypeScript. Remember this observation`,
-    tools: [...memoryTools],
-  });
-  ```
-- **Deleting observations**:
-  ```typescript
-  ai.generate({
-    system: MEMORY_TOOLS_INSTRUCTIONS,
-    prompt: `Forget that Paul likes TypeScript. `,
-    tools: [...memoryTools],
-  });
-  ```
-- **Deleting relationships**:
-  ```typescript
-  ai.generate({
-    system: MEMORY_TOOLS_INSTRUCTIONS,
-    prompt: `Forget that Paul is a Software Developer.`,
-    tools: [...memoryTools],
-  });
-  ```
-
-## Available Memory Tools
-
-This plugin provides the following tools, which are exposed via `defineGraphMemoryTools`:
-
-- `memory/create_entities`: Create multiple new entities in the knowledge graph.
-- `memory/create_relationships`: Create multiple new relationships between existing entities in the knowledge graph. Relationships should be in active voice.
-- `memory/add_observations`: Add new observations to existing entities in the knowledge graph.
-- `memory/delete_entities`: Delete specified entities from the knowledge graph. This action will also remove any relationships or observations associated with the deleted entities.
-- `memory/delete_observations`: Delete specific observations from entities in the knowledge graph. You must specify the entity name and the exact observations to remove.
-- `memory/delete_relationships`: Delete specified relationships between entities in the knowledge graph. You must provide the exact relationship details to be deleted.
-- `memory/read_graph`: Read the entire knowledge graph, including all entities, relationships, and observations.
-- `memory/search_nodes`: Search for entities (nodes) in the knowledge graph that match a given query. Returns a subgraph containing the matching entities and their direct relationships/observations.
-- `memory/read_nodes`: Read and return specific entities (nodes) from the knowledge graph by their exact names. Returns a subgraph containing the requested entities and their direct relationships/observations.
-
-This is inspired by MCP memory server from: https://github.com/modelcontextprotocol/servers/tree/main/src/memory
 
 ## Memory File Management
 
-The `genkitx-memory` package stores its knowledge graph data in a local file. The path to this file can be controlled via the `MEMORY_FILE_PATH` environment variable.
+Both the Key-Value and Graph memory stores persist their data to local files. The base path for these files can be controlled via the `KV_MEMORY_FILE_PATH` and `GRAPH_MEMORY_FILE_PATH` environment variables respectively.
 
-- If `MEMORY_FILE_PATH` is set, the package will use the specified path for the memory file.
-- If `MEMORY_FILE_PATH` is not set, the memory file will default to `memory.json` located in the current working directory where the application is run.
+- If the environment variable is set, the package will use the specified path for the memory file.
+- If not set, the memory files will default to `kv_memory.json` and `memory_graph.json` (or `kv_memory.json.<sessionId>` and `memory_graph.json.<sessionId>` for session-specific data) located in the current working directory.
 
-This allows for flexible management of your knowledge graph data, enabling you to specify a custom location or rely on the default behavior for quick setup.
+This allows for flexible management of your memory data, enabling you to specify custom locations or rely on the default behavior for quick setup.
 
-Learn more about genkit on https://genkit.dev
+## Custom Store Implementations
+
+Both `defineMemoryTools` and `defineGraphMemoryTools` accept an optional second parameter, `opts`, which allows you to provide your own custom implementations of `KeyValueStore` and `GraphStore` respectively. This is useful if you want to integrate with different storage backends (e.g., a database, a cloud storage service) instead of the default file-based storage.
+
+For example:
+
+```typescript
+import { defineMemoryTools, KeyValueStore, Entry } from "genkitx-memory";
+
+class MyCustomKeyValueStore implements KeyValueStore {
+  async save(opts: { sessionId?: string; entries: Entry[] }): Promise<void> {
+    // Implement custom save logic here (e.g., save to a database)
+    console.log(`Saving to custom store for session ${opts.sessionId}:`, opts.entries);
+  }
+  async load(opts: { sessionId?: string; keys?: string[] }): Promise<Entry[]> {
+    // Implement custom load logic here (e.g., load from a database)
+    console.log(`Loading from custom store for session ${opts.sessionId}, keys:`, opts.keys);
+    return []; // Return actual data from your store
+  }
+  async delete(opts: { sessionId?: string; key: string }): Promise<void> {
+    // Implement custom delete logic here
+    console.log(`Deleting from custom store for session ${opts.sessionId}, key:`, opts.key);
+  }
+  async listKeys(opts: { sessionId?: string }): Promise<string[]> {
+    // Implement custom listKeys logic here
+    console.log(`Listing keys from custom store for session ${opts.sessionId}`);
+    return []; // Return actual keys from your store
+  }
+}
+
+const myCustomStore = new MyCustomKeyValueStore();
+const memoryTools = defineMemoryTools(ai, { store: myCustomStore });
+```
+
+By implementing the `KeyValueStore` or `GraphStore` interfaces, you can seamlessly swap out the underlying storage mechanism without altering your Genkit flow logic.
+
+## Running as an MCP Server
+
+You can run `genkitx-memory` as an MCP server (stdio) using the following command:
+
+```bash
+npx -y genkitx-memory
+```
+
+Learn more about Genkit on https://genkit.dev

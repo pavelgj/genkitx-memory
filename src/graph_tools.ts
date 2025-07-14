@@ -14,7 +14,7 @@ export function defineGraphMemoryTools(
   opts?: { store?: GraphStore; memoryFilePath?: string }
 ): ToolAction[] {
   const memoryFilePath =
-    opts?.memoryFilePath ?? process.env.GRAPH_MEMORY_FILE_PATH ?? path.join(process.cwd(), 'graph_memory.json');
+    opts?.memoryFilePath ?? process.env.GRAPH_MEMORY_FILE_PATH ?? path.join(process.cwd(), 'memory_graph.json');
 
   const graph = new Graph(opts?.store ?? new FileGraphStore(memoryFilePath));
 
@@ -22,7 +22,7 @@ export function defineGraphMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory_graph/create_entities',
+        name: 'memory_create_entities',
         description:
           'Creates new entities in the knowledge graph. Entities represent distinct concepts or objects.',
         inputSchema: z.object({
@@ -44,7 +44,7 @@ export function defineGraphMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory_graph/create_relationships',
+        name: 'memory_create_relationships',
         description:
           'Creates new relationships between existing entities in the knowledge graph. Relationships define how entities are connected and should be expressed in active voice.',
         inputSchema: z.object({
@@ -66,7 +66,7 @@ export function defineGraphMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory_graph/add_observations',
+        name: 'memory_add_observations',
         description:
           'Adds new observations to existing entities in the knowledge graph. Observations are factual details or attributes associated with an entity.',
         inputSchema: z.object({
@@ -88,7 +88,7 @@ export function defineGraphMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory_graph/delete_entities',
+        name: 'memory_delete_entities',
         description:
           'Deletes specified entities from the knowledge graph. This action will also remove any relationships or observations associated with the deleted entities.',
         inputSchema: z.object({
@@ -106,7 +106,7 @@ export function defineGraphMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory_graph/delete_observations',
+        name: 'memory_delete_observations',
         description:
           'Deletes specific observations from entities in the knowledge graph. You must specify the entity name and the exact observations to remove.',
         inputSchema: z.object({
@@ -126,7 +126,7 @@ export function defineGraphMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory_graph/delete_relationships',
+        name: 'memory_delete_relationships',
         description:
           'Deletes specified relationships between entities in the knowledge graph. You must provide the exact relationship details to be deleted.',
         inputSchema: z.object({
@@ -144,7 +144,7 @@ export function defineGraphMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory_graph/read_graph',
+        name: 'memory_read_graph',
         description:
           'Reads and returns the entire current state of the knowledge graph, including all entities, relationships, and observations.',
         outputSchema: KnowledgeGraphSchema,
@@ -158,7 +158,7 @@ export function defineGraphMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory_graph/search_nodes',
+        name: 'memory_search_nodes',
         description:
           'Searches for entities (nodes) in the knowledge graph that match a given query. Returns a subgraph containing the matching entities and their direct relationships/observations.',
         inputSchema: z.object({
@@ -175,7 +175,7 @@ export function defineGraphMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory_graph/read_nodes',
+        name: 'memory_read_nodes',
         description:
           'Reads and returns specific entities (nodes) from the knowledge graph by their exact names. Returns a subgraph containing the requested entities and their direct relationships/observations.',
         inputSchema: z.object({
@@ -194,7 +194,7 @@ export function defineGraphMemoryTools(
     {
       name: 'memory_graph_instructions',
       description: 'Provides instruction for how to use memory graph tools',
-      uri: 'memory://graph/instructions',
+      uri: 'memory://instructions',
     },
     async () => ({
       content: [{ text: GRAPH_MEMORY_TOOLS_INSTRUCTIONS }],
@@ -205,15 +205,15 @@ export function defineGraphMemoryTools(
 }
 
 export const GRAPH_MEMORY_TOOLS = [
-  'memory_graph/create_entities',
-  'memory_graph/create_relationships',
-  'memory_graph/add_observations',
-  'memory_graph/delete_entities',
-  'memory_graph/delete_observations',
-  'memory_graph/delete_relationships',
-  'memory_graph/read_graph',
-  'memory_graph/search_nodes',
-  'memory_graph/read_nodes',
+  'memory_create_entities',
+  'memory_create_relationships',
+  'memory_add_observations',
+  'memory_delete_entities',
+  'memory_delete_observations',
+  'memory_delete_relationships',
+  'memory_read_graph',
+  'memory_search_nodes',
+  'memory_read_nodes',
 ] as const;
 
 export const GRAPH_MEMORY_TOOLS_INSTRUCTIONS = `[instructions about memory tools]

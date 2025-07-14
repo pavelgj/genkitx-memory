@@ -10,11 +10,30 @@ export const EntrySchema = z.object({
 export type Entry = z.infer<typeof EntrySchema>;
 
 export interface KeyValueStore {
-  // renamed from set
+  /**
+   * Saves one or more key-value pairs to the store. Overwrites existing entries.
+   * @param opts.sessionId - Optional session ID to scope the entries.
+   * @param opts.entries - An array of key-value pairs to save.
+   */
   save(opts: { sessionId?: string; entries: Entry[] }): Promise<void>;
-  // renamed from get. note the optional keys -- if not set load EVERYTHING
+  /**
+   * Loads entries from the store.
+   * @param opts.sessionId - Optional session ID to scope the entries.
+   * @param opts.keys - Optional array of keys to load. If not provided, all entries for the session are loaded.
+   * @returns A promise that resolves to an array of loaded entries.
+   */
   load(opts: { sessionId?: string; keys?: string[] }): Promise<Entry[]>;
+  /**
+   * Deletes an entry from the store.
+   * @param opts.sessionId - Optional session ID to scope the deletion.
+   * @param opts.key - The key of the entry to delete.
+   */
   delete(opts: { sessionId?: string; key: string }): Promise<void>;
+  /**
+   * Lists all keys currently stored for a given session.
+   * @param opts.sessionId - Optional session ID to scope the keys.
+   * @returns A promise that resolves to an array of keys.
+   */
   listKeys(opts: { sessionId?: string }): Promise<string[]>;
 }
 
@@ -26,8 +45,7 @@ export class FileKeyValueStore implements KeyValueStore {
   }
 
   private getSessionFilePath(sessionId: string | undefined): string {
-    const fileName = sessionId ? `kv_memory.${sessionId}.json` : `kv_memory.json`;
-    return path.join(this.memoryFilePath, fileName);
+    return sessionId ? `${this.memoryFilePath}.${sessionId}` : this.memoryFilePath;
   }
 
   private async _load(sessionId: string | undefined): Promise<Map<string, string>> {
@@ -64,7 +82,7 @@ export class FileKeyValueStore implements KeyValueStore {
   async load(opts: { sessionId?: string; keys?: string[] }): Promise<Entry[]> {
     const data = await this._load(opts.sessionId);
     const results: Entry[] = [];
-    if (opts.keys) {
+    if (opts.keys && opts.keys.length > 0) {
       for (const key of opts.keys) {
         const value = data.get(key);
         if (value !== undefined) {

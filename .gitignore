@@ -3,3 +3,5 @@ node_modules
 .genkit
 *.local.*
 pnpm-lock.yaml
+memory_graph.json
+memory_kv.json

@@ -5,8 +5,8 @@ export {
 } from './graph_tools.js';
 export { type GraphStore, FileGraphStore } from './graph.js';
 export {
-  defineKeyValueMemoryTools,
+  defineMemoryTools,
   KEY_VALUE_MEMORY_TOOLS,
   KEY_VALUE_MEMORY_TOOLS_INSTRUCTIONS,
-} from './key_value_tools.js';
+} from './kv_tools.js';
 export { type KeyValueStore, FileKeyValueStore } from './kv_store.js';

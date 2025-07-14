@@ -6,26 +6,26 @@ import * as path from 'path';
 import * as os from 'os';
 
 describe('FileKeyValueStore', () => {
-  const testBaseDir = path.join(os.tmpdir(), 'genkitx-memory-test', Date.now().toString());
+  const testMemoryFile = path.join(os.tmpdir(), 'genkitx-memory-test', Date.now().toString());
   let store: FileKeyValueStore;
 
   beforeEach(async () => {
     // Ensure the test directory is clean before each test
     try {
-      await fs.rm(testBaseDir, { recursive: true, force: true });
+      await fs.rm(testMemoryFile, { recursive: true, force: true });
     } catch (error: any) {
       if (error.code !== 'ENOENT') {
         throw error;
       }
     }
-    await fs.mkdir(testBaseDir, { recursive: true });
-    store = new FileKeyValueStore(testBaseDir);
+    await fs.mkdir(path.dirname(testMemoryFile), { recursive: true });
+    store = new FileKeyValueStore(testMemoryFile);
   });
 
   afterEach(async () => {
     // Clean up the test directory after each test
     try {
-      await fs.rm(testBaseDir, { recursive: true, force: true });
+      await fs.rm(testMemoryFile, { recursive: true, force: true });
     } catch (error: any) {
       if (error.code !== 'ENOENT') {
         throw error;
@@ -76,7 +76,7 @@ describe('FileKeyValueStore', () => {
     await store.save({ sessionId: undefined, entries: [{ key: 'persistentKey', value: 'persistentValue' }] });
 
     // Create a new store instance pointing to the same base directory
-    const newStore = new FileKeyValueStore(testBaseDir);
+    const newStore = new FileKeyValueStore(testMemoryFile);
     const entries = await newStore.load({ sessionId: undefined, keys: ['persistentKey'] });
     assert.strictEqual(
       entries[0]?.value,
@@ -104,13 +104,13 @@ describe('FileKeyValueStore', () => {
       anotherKey: 'anotherValue',
     };
     await fs.writeFile(
-      path.join(testBaseDir, 'kv_memory.json'),
+      testMemoryFile,
       JSON.stringify(initialData, null, 2),
       'utf-8'
     );
 
     // Initialize a new store and check its content
-    const newStore = new FileKeyValueStore(testBaseDir);
+    const newStore = new FileKeyValueStore(testMemoryFile);
     assert.strictEqual((await newStore.load({ sessionId: undefined, keys: ['preExistingKey'] }))[0]?.value, 'preExistingValue');
     assert.strictEqual((await newStore.load({ sessionId: undefined, keys: ['anotherKey'] }))[0]?.value, 'anotherValue');
     assert.deepStrictEqual(

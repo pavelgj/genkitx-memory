@@ -11,7 +11,7 @@ const memoryTools = defineGraphMemoryTools(ai);
 
 ai.defineFlow('populate_graph', async () => {
   const { text } = await ai.generate({
-    system: [{ resource: { uri: 'memory://graph/instructions' } }],
+    system: [{ resource: { uri: 'memory://instructions' } }],
     prompt: `Remember that my name is Pavel and I'm a Software Developer and I work at company Placeholder Software Inc.`,
     tools: [...memoryTools],
   });
@@ -20,7 +20,7 @@ ai.defineFlow('populate_graph', async () => {
 
 ai.defineFlow('add_observations', async () => {
   const { text } = await ai.generate({
-    system: [{ resource: { uri: 'memory://graph/instructions' } }],
+    system: [{ resource: { uri: 'memory://instructions' } }],
     prompt: `Pavel likes TypeScript. Remember this observation`,
     tools: [...memoryTools],
   });
@@ -29,7 +29,7 @@ ai.defineFlow('add_observations', async () => {
 
 ai.defineFlow('delete_observations', async () => {
   const { text } = await ai.generate({
-    system: [{ resource: { uri: 'memory://graph/instructions' } }],
+    system: [{ resource: { uri: 'memory://instructions' } }],
     prompt: `Forget that Pavel likes TypeScript. `,
     tools: [...memoryTools],
   });
@@ -38,7 +38,7 @@ ai.defineFlow('delete_observations', async () => {
 
 ai.defineFlow('delete_relation', async () => {
   const { text } = await ai.generate({
-    system: [{ resource: { uri: 'memory://graph/instructions' } }],
+    system: [{ resource: { uri: 'memory://instructions' } }],
     prompt: `Forget that Pavel is a Software Developer.`,
     tools: [...memoryTools],
   });
@@ -47,7 +47,7 @@ ai.defineFlow('delete_relation', async () => {
 
 ai.defineFlow('check_entity', async () => {
   const { text } = await ai.generate({
-    system: [{ resource: { uri: 'memory://graph/instructions' } }],
+    system: [{ resource: { uri: 'memory://instructions' } }],
     prompt: `do you remember my name? check memory.`,
     tools: [...memoryTools],
   });
@@ -57,7 +57,7 @@ ai.defineFlow('check_entity', async () => {
 ai.defineFlow('populate_graph_in_session', async () => {
   const sessionId = '123';
   const { text } = await ai.generate({
-    system: [{ resource: { uri: 'memory://graph/instructions' } }],
+    system: [{ resource: { uri: 'memory://instructions' } }],
     prompt: `Remember that my name is Banana and I'm a Tree and I work at Banana Grove Inc.`,
     tools: [...memoryTools],
     context: { memory: { sessionId } },

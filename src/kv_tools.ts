@@ -3,7 +3,7 @@ import { GenkitBeta } from 'genkit/beta';
 import path from 'path';
 import { EntrySchema, FileKeyValueStore, KeyValueStore } from './kv_store.js';
 
-export function defineKeyValueMemoryTools(
+export function defineMemoryTools(
   ai: GenkitBeta,
   opts?: { store?: KeyValueStore; memoryFilePath?: string }
 ): ToolAction[] {
@@ -19,7 +19,7 @@ export function defineKeyValueMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory/set',
+        name: 'memory_set',
         description:
           'Sets one or more key-value pairs in memory. Overwrites if keys already exist.',
         inputSchema: z.object({
@@ -39,7 +39,7 @@ export function defineKeyValueMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory/get',
+        name: 'memory_get',
         description: 'Retrieves one or more values from memory for given keys.',
         inputSchema: z.object({
           keys: z.array(z.string()).describe('An array of keys to retrieve values for.'),
@@ -57,7 +57,7 @@ export function defineKeyValueMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory/list_keys',
+        name: 'memory_list_keys',
         description: 'Lists all keys currently stored in memory.',
         inputSchema: z.object({}),
         outputSchema: z.array(z.string()),
@@ -73,7 +73,7 @@ export function defineKeyValueMemoryTools(
   actions.push(
     ai.defineTool(
       {
-        name: 'memory/delete',
+        name: 'memory_delete',
         description: 'Deletes a value from memory for a given key.',
         inputSchema: z.object({
           key: z.string().describe('The key to delete.'),
@@ -92,7 +92,7 @@ export function defineKeyValueMemoryTools(
     {
       name: 'memory_instructions',
       description: 'Provides instruction for how to use memory tools',
-      uri: 'memory://kv/instructions',
+      uri: 'memory://instructions',
     },
     async () => ({
       content: [{ text: KEY_VALUE_MEMORY_TOOLS_INSTRUCTIONS }],
@@ -103,10 +103,10 @@ export function defineKeyValueMemoryTools(
 }
 
 export const KEY_VALUE_MEMORY_TOOLS = [
-  'memory/set',
-  'memory/get',
-  'memory/list_keys',
-  'memory/delete',
+  'memory_set',
+  'memory_get',
+  'memory_list_keys',
+  'memory_delete',
 ] as const;
 
 export const KEY_VALUE_MEMORY_TOOLS_INSTRUCTIONS = `[instructions about memory tools]
@@ -116,10 +116,10 @@ You have access to the following tools that help you manage long-term memory: ${
 )}
 
 Use them when asked to remember things. Memory is a simple key-value store.
-- Use 'memory/set' to store information with a specific key.
-- Use 'memory/get' to retrieve information by its key.
-- Use 'memory/list_keys' to see all stored keys.
-- Use 'memory/delete' to delete information by its key.
+- Use 'memory_set' to store information with a specific key.
+- Use 'memory_get' to retrieve information by its key.
+- Use 'memory_list_keys' to see all stored keys.
+- Use 'memory_delete' to delete information by its key.
 
 When setting memory, choose a descriptive key that will help you retrieve the information later. It can a whole sentense if necessary.
 When getting memory, ensure you use the exact key that was used to set the value.
