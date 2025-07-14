@@ -178,8 +178,6 @@ You can run `genkitx-memory` as an MCP server (stdio) using the following comman
 npx -y genkitx-memory
 ```
 
-Learn more about Genkit on https://genkit.dev
-
 ### Agent Rules for MCP Server Usage
 
 To enable agents (like Gemini CLI, Cline, or Claude Code) to effectively use the `genkitx-memory` MCP server, include the following rules in their configuration (e.g., `GEMINI.md`, `.clienerule`, `CLAUDE.md`):
@@ -204,3 +202,8 @@ IMPORTANT:
 
 [end of instructions about memory tools]
 ```
+
+
+Learn more about Genkit on https://genkit.dev
+
+Get started with Genkit: https://genkit.dev/docs/get-started/
