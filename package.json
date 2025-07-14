@@ -4,9 +4,10 @@
     "genkit",
     "genkit-plugin",
     "ai",
-    "memory"
+    "memory",
+    "mcp"
   ],
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A Genkit plugin for managing and interacting with long-term memory.",
   "bin": {
     "genkitx-memory-mcp": "lib/mcp.js"
@@ -25,7 +26,7 @@
   "scripts": {
     "check": "tsc",
     "compile": "tsup-node",
-    "run-sample": "MEMORY_FILE_PATH=`pwd`/memory.local.json genkit start -- tsx samples/kv.ts",
+    "run-sample": "genkit start -- tsx samples/kv.ts",
     "build:clean": "rimraf ./lib",
     "build": "npm-run-all build:clean check compile",
     "build:watch": "tsup-node --watch",
